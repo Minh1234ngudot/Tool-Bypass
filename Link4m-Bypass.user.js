@@ -1,271 +1,378 @@
 // ==UserScript==
 // @name         Bypass Link4m
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.0
 // @description  Bypass-link4m
-// @author       Trieudzvcl
+// @author       SigmaBou_VN
 // @match        https://link4m.com/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @connect      raw.githubusercontent.com
+// @connect      pastefy.app
 // @run-at       document-idle
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    // ========== CONFIG ==========
-    const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/ugphone839/bypass-link4m/refs/heads/main/Code';
-    // Logo image you provided (will be loaded from this URL)
-    const LOGO_URL = 'https://i.postimg.cc/Qxt5ND3S/IMG-3686.jpg';
-    // If you prefer data URI (embedded), tell me and I will provide a version with base64 embedded.
-    // ============================
+    const GITHUB_RAW_URL = 'https://pastefy.app/Yxkai6Iy/raw';
+    const LOGO_URL = 'https://i.pinimg.com/736x/59/4f/e8/594fe82da47f9bb9f66f15cf76571172.jpg';
+
+    const existingPanel = document.getElementById('bypass-control-panel-minimal');
+    if (existingPanel) existingPanel.remove();
 
     GM_addStyle(`
-        /* Panel core */
         #bypass-control-panel-minimal {
             position: fixed;
             top: 10px;
             left: 10px;
-            z-index: 9999999;
-            background-color: #f8f8f8;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 8px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-            width: 320px;
-            max-width: calc(100% - 24px);
+            z-index: 10000;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            width: 300px;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            transition: transform 0.12s ease, opacity 0.12s ease;
-            touch-action: none;
-            -webkit-user-select: none;
+            transition: all 0.3s ease;
+            user-select: none;
         }
+
         #bypass-control-panel-minimal.minimized {
-            height: 46px;
-            width: 240px;
-            overflow: visible;
+            width: 200px;
+            height: 40px;
+            padding: 8px 10px;
         }
 
-        /* Header */
+        #bypass-control-panel-minimal.minimized #panel-content {
+            display: none !important;
+        }
+
         #panel-header {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:8px;
-            padding:6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             cursor: grab;
-            background: linear-gradient(180deg,#ffffff,#fafafa);
-            border-radius: 6px;
+            height: 24px;
         }
-        /* Left side: icon + title */
-        #panel-header .panel-left { display:flex; align-items:center; gap:8px; flex:1; }
-        #panel-icon-img { width:28px; height:28px; object-fit:cover; border-radius:6px; display:inline-block; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
-        #panel-title { font-weight:700; font-size:13px; color:#222; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-        /* Toggle button */
-        #btn-toggle {
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        #panel-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        #panel-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333;
+            line-height: 1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            height: 24px;
+        }
+
+        #toggle-btn {
             background: none;
             border: none;
-            font-size:20px;
-            font-weight:700;
+            font-size: 16px;
             cursor: pointer;
-            padding: 2px 8px;
-            line-height:1;
-            color:#333;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            color: #666;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            margin: 0;
         }
 
-        /* Content */
-        #panel-content { display:flex; flex-direction:column; gap:8px; transition: max-height 0.18s ease-out, opacity 0.18s; max-height: 120px; }
-        .minimized #panel-content { max-height:0; opacity:0; padding:0; margin:0; }
-
-        #btn-bypass {
-            padding:10px 12px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-            font-weight:700;
-            font-size:15px;
-            width:100%;
-            box-sizing:border-box;
-            color:#fff;
-            background:#dc3545;
-            transition: background 0.12s;
+        #toggle-btn:hover {
+            background: #f0f0f0;
         }
-        #btn-bypass:hover { background:#c82333; }
 
-        #status-line { font-size:12px; color:#333; background:#fff; padding:8px; border-radius:6px; border:1px solid #eee; }
+        #panel-content {
+            margin-top: 12px;
+        }
 
-        /* footer controls */
-        #panel-footer { display:flex; gap:8px; justify-content:space-between; align-items:center; }
-        #panel-footer button { padding:6px 8px; border-radius:6px; border:1px solid #ddd; background:#fff; cursor:pointer; font-size:13px; }
+        #bypass-btn {
+            width: 100%;
+            padding: 12px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.2s ease;
+        }
+
+        #bypass-btn:hover {
+            background: #b71c1c;
+        }
+
+        #bypass-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #status {
+            font-size: 12px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .panel-footer {
+            display: flex;
+            gap: 8px;
+        }
+
+        .footer-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s ease;
+        }
+
+        .footer-btn:hover {
+            background: #e9ecef;
+        }
     `);
 
-    // Remove previously existing panel to avoid duplicates
-    try { document.getElementById('bypass-control-panel-minimal')?.remove(); } catch(e){}
-
-    function createMinimalControlPanel() {
+    function createPanel() {
         const panel = document.createElement('div');
         panel.id = 'bypass-control-panel-minimal';
-        panel.classList.add('minimized');
+        
+        panel.innerHTML = `
+            <div id="panel-header">
+                <div class="header-left">
+                    <img id="panel-icon" src="${LOGO_URL}" alt="Logo">
+                    <span id="panel-title">Bypass Link4m (SigmaBou_VN)</span>
+                </div>
+                <button id="toggle-btn">+</button>
+            </div>
+            <div id="panel-content">
+                <div id="status">Sẵn Sàng...</div>
+                <button id="bypass-btn">KÍCH HOẠT BYPASS</button>
+                <div class="panel-footer">
+                    <button class="footer-btn" id="reload-btn">Tải Lại</button>
+                    <button class="footer-btn" id="help-btn">Hướng Dẫn</button>
+                </div>
+            </div>
+        `;
 
-        // Header
-        const header = document.createElement('div');
-        header.id = 'panel-header';
-
-        const left = document.createElement('div');
-        left.className = 'panel-left';
-
-        const img = document.createElement('img');
-        img.id = 'panel-icon-img';
-        img.src = LOGO_URL;
-        img.alt = 'Logo';
-
-        const title = document.createElement('div');
-        title.id = 'panel-title';
-        title.textContent = 'Bypass Link4m (Trieuskid)';
-
-        left.appendChild(img);
-        left.appendChild(title);
-
-        const toggleButton = document.createElement('button');
-        toggleButton.id = 'btn-toggle';
-        toggleButton.textContent = '+';
-
-        header.appendChild(left);
-        header.appendChild(toggleButton);
-        panel.appendChild(header);
-
-        // Content
-        const content = document.createElement('div');
-        content.id = 'panel-content';
-
-        const status = document.createElement('div');
-        status.id = 'status-line';
-        status.textContent = 'Ready. Click to fetch bypass code (no auto-run).';
-
-        const bypassBtn = document.createElement('button');
-        bypassBtn.id = 'btn-bypass';
-        bypassBtn.textContent = 'KÍCH HOẠT BYPASS';
-
-        const footer = document.createElement('div');
-        footer.id = 'panel-footer';
-        const copyBtn = document.createElement('button');
-        copyBtn.textContent = 'Tải lại';
-        const helpBtn = document.createElement('button');
-        helpBtn.textContent = 'Hướng dẫn';
-        footer.appendChild(copyBtn);
-        footer.appendChild(helpBtn);
-
-        content.appendChild(status);
-        content.appendChild(bypassBtn);
-        content.appendChild(footer);
-
-        panel.appendChild(content);
         document.body.appendChild(panel);
+        return panel;
+    }
 
-        // Dragging support (pointer events)
-        (function makeDraggable(elem, handle){
-            let dragging=false, startX=0, startY=0, origLeft=0, origTop=0;
-            handle.addEventListener('pointerdown', ev => {
-                ev.preventDefault();
-                dragging = true;
-                handle.setPointerCapture(ev.pointerId);
-                startX = ev.clientX; startY = ev.clientY;
-                const rect = elem.getBoundingClientRect();
-                origLeft = rect.left; origTop = rect.top;
-                elem.style.transition = 'none';
-            });
-            window.addEventListener('pointermove', ev => {
-                if(!dragging) return;
-                const dx = ev.clientX - startX, dy = ev.clientY - startY;
-                let left = origLeft + dx, top = origTop + dy;
-                left = Math.max(6, Math.min(left, window.innerWidth - elem.offsetWidth - 6));
-                top = Math.max(6, Math.min(top, window.innerHeight - elem.offsetHeight - 6));
-                elem.style.left = left + 'px';
-                elem.style.top = top + 'px';
-                elem.style.right = 'auto';
-                elem.style.bottom = 'auto';
-                elem.style.position = 'fixed';
-            });
-            window.addEventListener('pointerup', ev => {
-                dragging = false;
-                elem.style.transition = '';
-            });
-        })(panel, header);
-
-        // Execute bypass (fetch + eval)
-        function executeBypass() {
-            bypassBtn.disabled = true;
-            bypassBtn.textContent = 'Đang tải...';
-            status.textContent = 'Đang tải code từ GitHub...';
-
-            GM_xmlhttpRequest({
-                method: "GET",
-                url: GITHUB_RAW_URL,
-                onload: function(res) {
-                    if(res.status === 200) {
-                        const txt = res.responseText || '';
-                        try {
-                            // IMPORTANT: this executes remote code. Keep for compatibility with your original script.
-                            unsafeWindow.eval(txt);
-                            status.textContent = 'ezggezggezgg.';
-                            bypassBtn.textContent = 'THÀNH CÔNG';
-                            bypassBtn.style.background = '#28a745';
-                        } catch(e) {
-                            console.error('Run error:', e);
-                            status.textContent = 'Lỗi khi chạy code: ' + (e.message || e);
-                            bypassBtn.textContent = 'LỖI';
-                            bypassBtn.style.background = '#ffc107';
-                        }
-                    } else {
-                        status.textContent = 'Lỗi tải code (HTTP ' + res.status + ')';
-                        bypassBtn.textContent = 'LỖI TẢI';
-                        bypassBtn.style.background = '#dc3545';
-                    }
-                    setTimeout(()=>{ bypassBtn.disabled = false; bypassBtn.textContent = 'đang bypass'; bypassBtn.style.background = ''; }, 3500);
-                },
-                onerror: function(err) {
-                    console.error('Request error', err);
-                    status.textContent = 'Lỗi kết nối khi tải code.';
-                    bypassBtn.textContent = 'LỖI KẾT NỐI';
-                    bypassBtn.style.background = '#dc3545';
-                    setTimeout(()=>{ bypassBtn.disabled = false; bypassBtn.textContent = 'KÍCH HOẠT BYPASS'; bypassBtn.style.background = ''; }, 3500);
-                }
-            });
+    function makeDraggable(elem, handle) {
+        let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+        
+        handle.addEventListener('mousedown', startDrag);
+        handle.addEventListener('touchstart', startDrag);
+        
+        function startDrag(e) {
+            if (e.target.id === 'toggle-btn' || e.target.closest('#toggle-btn')) {
+                return;
+            }
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            dragging = true;
+            
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            
+            const rect = elem.getBoundingClientRect();
+            origLeft = rect.left;
+            origTop = rect.top;
+            
+            elem.style.transition = 'none';
+            handle.style.cursor = 'grabbing';
+            
+            document.addEventListener('mousemove', drag, { passive: false });
+            document.addEventListener('touchmove', drag, { passive: false });
+            document.addEventListener('mouseup', stopDrag, { passive: false });
+            document.addEventListener('touchend', stopDrag, { passive: false });
         }
+        
+        function drag(e) {
+            if (!dragging) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+            
+            let left = origLeft + dx;
+            let top = origTop + dy;
+            
+            left = Math.max(6, Math.min(left, window.innerWidth - elem.offsetWidth - 6));
+            top = Math.max(6, Math.min(top, window.innerHeight - elem.offsetHeight - 6));
+            
+            elem.style.left = left + 'px';
+            elem.style.top = top + 'px';
+            elem.style.right = 'auto';
+            elem.style.bottom = 'auto';
+            elem.style.position = 'fixed';
+        }
+        
+        function stopDrag(e) {
+            dragging = false;
+            elem.style.transition = '';
+            handle.style.cursor = 'grab';
+            
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchend', stopDrag);
+        }
+    }
 
-        bypassBtn.addEventListener('click', executeBypass);
-        copyBtn.addEventListener('click', () => {
-            // just refetch and show status
-            status.textContent = 'Tải lại';
-            bypassBtn.click();
-        });
-        helpBtn.addEventListener('click', () => {
-            alert('Hướng dẫn:\n1) Bấm "địt mẹ mày');
+    function setupMinimize() {
+        const toggleBtn = document.getElementById('toggle-btn');
+        const panel = document.getElementById('bypass-control-panel-minimal');
+        
+        toggleBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            
+            if (panel.classList.contains('minimized')) {
+                panel.classList.remove('minimized');
+                toggleBtn.textContent = '−';
+            } else {
+                panel.classList.add('minimized');
+                toggleBtn.textContent = '+';
+            }
         });
 
-        // Toggle panel minimize
-        toggleButton.addEventListener('click', () => {
-            panel.classList.toggle('minimized');
-            toggleButton.textContent = panel.classList.contains('minimized') ? '+' : '-';
-        });
-
-        // Also toggle when clicking header (except toggle button)
-        header.addEventListener('click', (e) => {
-            if(e.target && e.target.id === 'btn-toggle') return;
-            // ignore clicks on buttons inside header
-            if(e.target.closest('button')) return;
-            // toggle
-            panel.classList.toggle('minimized');
-            toggleButton.textContent = panel.classList.contains('minimized') ? '+' : '-';
+        const header = document.getElementById('panel-header');
+        header.addEventListener('dblclick', function(e) {
+            if (e.target === toggleBtn || e.target.closest('#toggle-btn')) {
+                return;
+            }
+            e.stopPropagation();
+            
+            if (panel.classList.contains('minimized')) {
+                panel.classList.remove('minimized');
+                toggleBtn.textContent = '−';
+            } else {
+                panel.classList.add('minimized');
+                toggleBtn.textContent = '+';
+            }
         });
     }
 
-    createMinimalControlPanel();
+    function executeBypass() {
+        const btn = document.getElementById('bypass-btn');
+        const status = document.getElementById('status');
+        
+        btn.disabled = true;
+        btn.textContent = 'ĐANG BYPASS...';
+        status.textContent = 'Đang Bypass Vui Lòng Đợi Một Chút...';
+
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: GITHUB_RAW_URL,
+            onload: function(res) {
+                if (res.status === 200) {
+                    try {
+                        unsafeWindow.eval(res.responseText);
+                        status.textContent = '✅ Bypass Thành Công!';
+                        btn.textContent = 'THÀNH CÔNG';
+                        btn.style.background = '#4caf50';
+                    } catch (e) {
+                        status.textContent = '❌ Lỗi Thực Khi Bypass';
+                        btn.textContent = 'LỖI';
+                        btn.style.background = '#ff9800';
+                    }
+                } else {
+                    status.textContent = '❌ Lỗi Tải Trang: ' + res.status;
+                    btn.textContent = 'LỖI TẢI';
+                    btn.style.background = '#f44336';
+                }
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'KÍCH HOẠT BYPASS';
+                    btn.style.background = '';
+                }, 3000);
+            },
+            onerror: function() {
+                status.textContent = '❌ Lỗi Kết Nối';
+                btn.textContent = 'LỖI MẠNG';
+                btn.style.background = '#f44336';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'KÍCH HOẠT BYPASS';
+                    btn.style.background = '';
+                }, 3000);
+            }
+        });
+    }
+
+    const panel = createPanel();
+    const header = document.getElementById('panel-header');
+    
+    panel.classList.add('minimized');
+    
+    makeDraggable(panel, header);
+    setupMinimize();
+
+    document.getElementById('bypass-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        executeBypass();
+    });
+    
+    document.getElementById('reload-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        window.location.reload();
+    });
+
+    document.getElementById('help-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        alert(`
+HƯỚNG DẪN SỬ DỤNG Bypass Link4m
+
+1. Bấm "KÍCH HOẠT BYPASS" Để Chạy Code
+
+2. Bấm "Tải Lại" Để Reload Trang
+
+3. Bấm Nút "+,−" Để Phóng To/Thu Nhỏ Panel
+
+4. Kéo Panel Để Di Chuyển Panel
+
+Phiên Bản 1.0 - By SigmaBou_VN`);
+    });
 
 })();
