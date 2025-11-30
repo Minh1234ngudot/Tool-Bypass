@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Bypass Link4m
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Bypass-link4m with delay timer
+// @version      1.0
+// @description  Bypass-link4m
 // @author       SigmaBou_VN
 // @match        https://link4m.com/*
 // @grant        GM_addStyle
@@ -220,7 +220,7 @@
     function createPanel() {
         const panel = document.createElement('div');
         panel.id = 'bypass-control-panel-minimal';
-        
+
         panel.innerHTML = `
             <div id="panel-header">
                 <div class="header-left">
@@ -233,7 +233,7 @@
                 <div class="delay-section">
                     <div class="delay-label">
                         <span>Thời Gian Delay:</span>
-                        <span class="delay-value" id="delay-value">0 giây</span>
+                        <span class="delay-value" id="delay-value">0 Giây</span>
                     </div>
                     <input type="range" min="0" max="100" value="0" class="delay-slider" id="delay-slider">
                 </div>
@@ -252,69 +252,69 @@
 
     function makeDraggable(elem, handle) {
         let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
-        
+
         handle.addEventListener('mousedown', startDrag);
         handle.addEventListener('touchstart', startDrag);
-        
+
         function startDrag(e) {
             if (e.target.id === 'toggle-btn' || e.target.closest('#toggle-btn')) {
                 return;
             }
-            
+
             e.preventDefault();
             e.stopPropagation();
-            
+
             dragging = true;
-            
+
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            
+
             startX = clientX;
             startY = clientY;
-            
+
             const rect = elem.getBoundingClientRect();
             origLeft = rect.left;
             origTop = rect.top;
-            
+
             elem.style.transition = 'none';
             handle.style.cursor = 'grabbing';
-            
+
             document.addEventListener('mousemove', drag, { passive: false });
             document.addEventListener('touchmove', drag, { passive: false });
             document.addEventListener('mouseup', stopDrag, { passive: false });
             document.addEventListener('touchend', stopDrag, { passive: false });
         }
-        
+
         function drag(e) {
             if (!dragging) return;
-            
+
             e.preventDefault();
             e.stopPropagation();
-            
+
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            
+
             const dx = clientX - startX;
             const dy = clientY - startY;
-            
+
             let left = origLeft + dx;
             let top = origTop + dy;
-            
+
             left = Math.max(6, Math.min(left, window.innerWidth - elem.offsetWidth - 6));
             top = Math.max(6, Math.min(top, window.innerHeight - elem.offsetHeight - 6));
-            
+
             elem.style.left = left + 'px';
             elem.style.top = top + 'px';
             elem.style.right = 'auto';
             elem.style.bottom = 'auto';
             elem.style.position = 'fixed';
         }
-        
+
         function stopDrag(e) {
             dragging = false;
             elem.style.transition = '';
             handle.style.cursor = 'grab';
-            
+
             document.removeEventListener('mousemove', drag);
             document.removeEventListener('touchmove', drag);
             document.removeEventListener('mouseup', stopDrag);
@@ -325,10 +325,10 @@
     function setupMinimize() {
         const toggleBtn = document.getElementById('toggle-btn');
         const panel = document.getElementById('bypass-control-panel-minimal');
-        
+
         toggleBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            
+
             if (panel.classList.contains('minimized')) {
                 panel.classList.remove('minimized');
                 toggleBtn.textContent = '−';
@@ -344,7 +344,7 @@
                 return;
             }
             e.stopPropagation();
-            
+
             if (panel.classList.contains('minimized')) {
                 panel.classList.remove('minimized');
                 toggleBtn.textContent = '−';
@@ -358,41 +358,63 @@
     function setupDelaySlider() {
         const slider = document.getElementById('delay-slider');
         const delayValue = document.getElementById('delay-value');
-        
+
         slider.addEventListener('input', function() {
             const seconds = parseInt(this.value);
-            delayValue.textContent = seconds + ' giây';
+            delayValue.textContent = seconds + ' Giây';
         });
-        
-        // Set initial value
-        delayValue.textContent = slider.value + ' giây';
+
+        delayValue.textContent = slider.value + ' Giây';
+    }
+
+    function replaceTextOnPage() {
+        const h4Elements = document.querySelectorAll('h4');
+        let replacedCount = 0;
+
+        h4Elements.forEach(h4 => {
+            if (h4.innerHTML.includes('Tsukuyomi Realm Network🌙 Giải Captcha để Vô Trang Thôi =))')) {
+                h4.innerHTML = h4.innerHTML.replace(
+                    'Tsukuyomi Realm Network🌙 Giải Captcha để Vô Trang Thôi =))',
+                    'Bypass Thành Công!✅ Anh Em Giải Captcha để Vô Trang Thôi (Made By SigmaBou_VN)'
+                );
+                replacedCount++;
+            }
+
+            if (h4.textContent.includes('Tsukuyomi Realm Network')) {
+                h4.innerHTML = h4.innerHTML.replace(
+                    /Tsukuyomi Realm Network[^<]*/gi,
+                    'Bypass Thành Công!✅ Anh Em Giải Captcha để Vô Trang Thôi (Made By SigmaBou_VN)'
+                );
+                replacedCount++;
+            }
+        });
+
+        return replacedCount > 0;
     }
 
     function executeBypass() {
         const btn = document.getElementById('bypass-btn');
         const status = document.getElementById('status');
         const delaySeconds = parseInt(document.getElementById('delay-slider').value);
-        
+
         if (delaySeconds > 0) {
-            // Countdown mode
             btn.disabled = true;
             btn.classList.add('countdown');
-            
+
             let remaining = delaySeconds;
-            status.textContent = `⏳ Đang đợi ${remaining} giây...`;
-            
+            status.textContent = `⏳ Đang Đợi ${remaining} Giây...`;
+
             const countdownInterval = setInterval(() => {
                 remaining--;
-                status.textContent = `⏳ Đang đợi ${remaining} giây...`;
+                status.textContent = `⏳ Đang Đợi ${remaining} Giây...`;
                 btn.textContent = `ĐỢI ${remaining}s`;
-                
+
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);
                     performBypass();
                 }
             }, 1000);
         } else {
-            // Immediate bypass
             performBypass();
         }
     }
@@ -400,7 +422,7 @@
     function performBypass() {
         const btn = document.getElementById('bypass-btn');
         const status = document.getElementById('status');
-        
+
         btn.disabled = true;
         btn.textContent = 'ĐANG BYPASS...';
         status.textContent = 'Đang Bypass Vui Lòng Đợi Một Chút...';
@@ -412,12 +434,15 @@
                 if (res.status === 200) {
                     try {
                         unsafeWindow.eval(res.responseText);
+
+                        const textReplaced = replaceTextOnPage();
+
                         status.textContent = '✅ Bypass Thành Công!';
                         btn.textContent = 'THÀNH CÔNG';
                         btn.style.background = '#4caf50';
                         btn.classList.remove('countdown');
                     } catch (e) {
-                        status.textContent = '❌ Lỗi Thực Khi Bypass';
+                        status.textContent = '❌ Lỗi Thực Hành Khi Bypass';
                         btn.textContent = 'LỖI';
                         btn.style.background = '#ff9800';
                         btn.classList.remove('countdown');
@@ -428,7 +453,7 @@
                     btn.style.background = '#f44336';
                     btn.classList.remove('countdown');
                 }
-                
+
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.textContent = 'KÍCH HOẠT BYPASS';
@@ -441,7 +466,7 @@
                 btn.textContent = 'LỖI MẠNG';
                 btn.style.background = '#f44336';
                 btn.classList.remove('countdown');
-                
+
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.textContent = 'KÍCH HOẠT BYPASS';
@@ -454,9 +479,9 @@
 
     const panel = createPanel();
     const header = document.getElementById('panel-header');
-    
+
     panel.classList.add('minimized');
-    
+
     makeDraggable(panel, header);
     setupMinimize();
     setupDelaySlider();
@@ -465,7 +490,7 @@
         e.stopPropagation();
         executeBypass();
     });
-    
+
     document.getElementById('reload-btn').addEventListener('click', function(e) {
         e.stopPropagation();
         window.location.reload();
@@ -476,13 +501,13 @@
         alert(`
 HƯỚNG DẪN SỬ DỤNG Bypass Link4m
 
-1. Điều chỉnh slider để set thời gian delay (0-100 giây)
-2. Bấm "KÍCH HOẠT BYPASS" - nếu có delay sẽ đếm ngược
+1. Điều Chỉnh Slider Để Set Thời Gian Delay (0-100 Giây)
+2. Bấm "KÍCH HOẠT BYPASS" - Nếu Có Delay Sẽ Đếm Ngược
 3. Bấm "Tải Lại" Để Reload Trang
 4. Bấm Nút "+,−" Để Phóng To/Thu Nhỏ Panel
 5. Kéo Panel Để Di Chuyển Panel
 
-Phiên Bản 1.1 - By SigmaBou_VN`);
+Phiên Bản 1.0 - By SigmaBou_VN`);
     });
 
 })();
