@@ -1,21 +1,21 @@
 // ==UserScript==
 // @name         Bypass Link4m
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Bypass-link4m
+// @version      1.1
+// @description  Bypass-link4m with delay timer
 // @author       SigmaBou_VN
 // @match        https://link4m.com/*
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @connect      pastefy.app
+// @connect      raw.githubusercontent.com
 // @run-at       document-idle
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    const GITHUB_RAW_URL = 'https://pastefy.app/Yxkai6Iy/raw';
+    const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/Minh1234ngudot/-/refs/heads/main/Code';
     const LOGO_URL = 'https://i.pinimg.com/736x/59/4f/e8/594fe82da47f9bb9f66f15cf76571172.jpg';
 
     const existingPanel = document.getElementById('bypass-control-panel-minimal');
@@ -108,6 +108,58 @@
             margin-top: 12px;
         }
 
+        .delay-section {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .delay-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .delay-value {
+            font-weight: 600;
+            color: #d32f2f;
+        }
+
+        .delay-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .delay-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #d32f2f;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .delay-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #d32f2f;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
         #bypass-btn {
             width: 100%;
             padding: 12px;
@@ -128,6 +180,10 @@
         #bypass-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
+        }
+
+        #bypass-btn.countdown {
+            background: #ff9800;
         }
 
         #status {
@@ -174,6 +230,13 @@
                 <button id="toggle-btn">+</button>
             </div>
             <div id="panel-content">
+                <div class="delay-section">
+                    <div class="delay-label">
+                        <span>Thời Gian Delay:</span>
+                        <span class="delay-value" id="delay-value">0 giây</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="0" class="delay-slider" id="delay-slider">
+                </div>
                 <div id="status">Sẵn Sàng...</div>
                 <button id="bypass-btn">KÍCH HOẠT BYPASS</button>
                 <div class="panel-footer">
@@ -292,7 +355,49 @@
         });
     }
 
+    function setupDelaySlider() {
+        const slider = document.getElementById('delay-slider');
+        const delayValue = document.getElementById('delay-value');
+        
+        slider.addEventListener('input', function() {
+            const seconds = parseInt(this.value);
+            delayValue.textContent = seconds + ' giây';
+        });
+        
+        // Set initial value
+        delayValue.textContent = slider.value + ' giây';
+    }
+
     function executeBypass() {
+        const btn = document.getElementById('bypass-btn');
+        const status = document.getElementById('status');
+        const delaySeconds = parseInt(document.getElementById('delay-slider').value);
+        
+        if (delaySeconds > 0) {
+            // Countdown mode
+            btn.disabled = true;
+            btn.classList.add('countdown');
+            
+            let remaining = delaySeconds;
+            status.textContent = `⏳ Đang đợi ${remaining} giây...`;
+            
+            const countdownInterval = setInterval(() => {
+                remaining--;
+                status.textContent = `⏳ Đang đợi ${remaining} giây...`;
+                btn.textContent = `ĐỢI ${remaining}s`;
+                
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    performBypass();
+                }
+            }, 1000);
+        } else {
+            // Immediate bypass
+            performBypass();
+        }
+    }
+
+    function performBypass() {
         const btn = document.getElementById('bypass-btn');
         const status = document.getElementById('status');
         
@@ -310,32 +415,38 @@
                         status.textContent = '✅ Bypass Thành Công!';
                         btn.textContent = 'THÀNH CÔNG';
                         btn.style.background = '#4caf50';
+                        btn.classList.remove('countdown');
                     } catch (e) {
                         status.textContent = '❌ Lỗi Thực Khi Bypass';
                         btn.textContent = 'LỖI';
                         btn.style.background = '#ff9800';
+                        btn.classList.remove('countdown');
                     }
                 } else {
                     status.textContent = '❌ Lỗi Tải Trang: ' + res.status;
                     btn.textContent = 'LỖI TẢI';
                     btn.style.background = '#f44336';
+                    btn.classList.remove('countdown');
                 }
                 
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.textContent = 'KÍCH HOẠT BYPASS';
                     btn.style.background = '';
+                    btn.classList.remove('countdown');
                 }, 3000);
             },
             onerror: function() {
                 status.textContent = '❌ Lỗi Kết Nối';
                 btn.textContent = 'LỖI MẠNG';
                 btn.style.background = '#f44336';
+                btn.classList.remove('countdown');
                 
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.textContent = 'KÍCH HOẠT BYPASS';
                     btn.style.background = '';
+                    btn.classList.remove('countdown');
                 }, 3000);
             }
         });
@@ -348,6 +459,7 @@
     
     makeDraggable(panel, header);
     setupMinimize();
+    setupDelaySlider();
 
     document.getElementById('bypass-btn').addEventListener('click', function(e) {
         e.stopPropagation();
@@ -364,15 +476,13 @@
         alert(`
 HƯỚNG DẪN SỬ DỤNG Bypass Link4m
 
-1. Bấm "KÍCH HOẠT BYPASS" Để Chạy Code
+1. Điều chỉnh slider để set thời gian delay (0-100 giây)
+2. Bấm "KÍCH HOẠT BYPASS" - nếu có delay sẽ đếm ngược
+3. Bấm "Tải Lại" Để Reload Trang
+4. Bấm Nút "+,−" Để Phóng To/Thu Nhỏ Panel
+5. Kéo Panel Để Di Chuyển Panel
 
-2. Bấm "Tải Lại" Để Reload Trang
-
-3. Bấm Nút "+,−" Để Phóng To/Thu Nhỏ Panel
-
-4. Kéo Panel Để Di Chuyển Panel
-
-Phiên Bản 1.0 - By SigmaBou_VN`);
+Phiên Bản 1.1 - By SigmaBou_VN`);
     });
 
 })();
