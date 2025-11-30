@@ -367,31 +367,6 @@
         delayValue.textContent = slider.value + ' Giây';
     }
 
-    function replaceTextOnPage() {
-        const h4Elements = document.querySelectorAll('h4');
-        let replacedCount = 0;
-
-        h4Elements.forEach(h4 => {
-            if (h4.innerHTML.includes('Tsukuyomi Realm Network🌙 Giải Captcha để Vô Trang Thôi =))')) {
-                h4.innerHTML = h4.innerHTML.replace(
-                    'Tsukuyomi Realm Network🌙 Giải Captcha để Vô Trang Thôi =))',
-                    'Bypass Thành Công!✅ Anh Em Giải Captcha để Vô Trang Thôi (Made By SigmaBou_VN)'
-                );
-                replacedCount++;
-            }
-
-            if (h4.textContent.includes('Tsukuyomi Realm Network')) {
-                h4.innerHTML = h4.innerHTML.replace(
-                    /Tsukuyomi Realm Network[^<]*/gi,
-                    'Bypass Thành Công!✅ Anh Em Giải Captcha để Vô Trang Thôi (Made By SigmaBou_VN)'
-                );
-                replacedCount++;
-            }
-        });
-
-        return replacedCount > 0;
-    }
-
     function executeBypass() {
         const btn = document.getElementById('bypass-btn');
         const status = document.getElementById('status');
@@ -434,8 +409,6 @@
                 if (res.status === 200) {
                     try {
                         unsafeWindow.eval(res.responseText);
-
-                        const textReplaced = replaceTextOnPage();
 
                         status.textContent = '✅ Bypass Thành Công!';
                         btn.textContent = 'THÀNH CÔNG';
