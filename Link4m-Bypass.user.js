@@ -400,7 +400,7 @@
 
         btn.disabled = true;
         btn.textContent = 'ĐANG BYPASS...';
-        status.textContent = 'Đang Bypass Vui Lòng Đợi Một Chút...';
+        status.textContent = '🔄 Đang Bypass Vui Lòng Đợi Một Chút...';
 
         GM_xmlhttpRequest({
             method: "GET",
