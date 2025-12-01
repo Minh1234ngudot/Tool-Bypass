@@ -475,9 +475,13 @@
 HƯỚNG DẪN SỬ DỤNG Bypass Link4m
 
 1. Điều Chỉnh Slider Để Set Thời Gian Delay (0-100 Giây)
+
 2. Bấm "KÍCH HOẠT BYPASS" - Nếu Có Delay Sẽ Đếm Ngược
+
 3. Bấm "Tải Lại" Để Reload Trang
+
 4. Bấm Nút "+,−" Để Phóng To/Thu Nhỏ Panel
+
 5. Kéo Panel Để Di Chuyển Panel
 
 Phiên Bản 1.0 - By SigmaBou_VN`);
