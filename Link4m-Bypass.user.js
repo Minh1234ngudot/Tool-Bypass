@@ -126,7 +126,7 @@
                 </div>
             </div>
         `;
- 
+
         document.body.appendChild(panel);
         return panel;
     }
