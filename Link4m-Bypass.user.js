@@ -2,7 +2,7 @@
 // @name         Link4m Tool Bypass
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Bypass-link4m with advanced features
+// @description  Bypass-link4m
 // @author       SigmaBou_VN
 // @match        https://link4m.com/*
 // @grant        GM_addStyle
