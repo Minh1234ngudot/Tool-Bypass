@@ -1,4 +1,4 @@
- // ==UserScript==
+// ==UserScript==
 // @name         Link4m Tool Bypass
 // @namespace    http://tampermonkey.net/
 // @version      1.0
