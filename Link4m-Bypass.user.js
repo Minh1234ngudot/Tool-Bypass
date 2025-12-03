@@ -110,7 +110,7 @@
                 <div class="settings-section">
                     <div class="setting-item">
                         <div class="setting-label">
-                            <span>Auto Bypass:</span>
+                            <span>Auto Bypass</span>
                         </div>
                         <label class="setting-switch">
                             <input type="checkbox" id="auto-bypass" ${settings.autoBypass ? 'checked' : ''}>
