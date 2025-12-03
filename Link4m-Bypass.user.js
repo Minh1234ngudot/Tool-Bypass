@@ -11,7 +11,7 @@
 // @grant        GM_getValue
 // @grant        unsafeWindow
 // @connect      raw.githubusercontent.com
-// @run-at       document-idle
+// @run-at       document-  idle
 // ==/UserScript==
 
 (function() {
