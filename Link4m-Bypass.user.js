@@ -377,7 +377,7 @@ Phiên Bản 1.0 - By SigmaBou_VN`);
         document.getElementById('bypass-btn').addEventListener('click', e => {
             e.stopPropagation();
             executeBypass();
-        });h
+        });
 
         document.getElementById('reload-btn').addEventListener('click', e => {
             e.stopPropagation();
