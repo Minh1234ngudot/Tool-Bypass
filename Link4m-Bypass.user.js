@@ -19,6 +19,7 @@
 
     const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/Minh1234ngudot/-/refs/heads/main/Code';
     const LOGO_URL = 'https://i.pinimg.com/736x/59/4f/e8/594fe82da47f9bb9f66f15cf76571172.jpg';
+    const STORAGE_KEY = 'bypassLink4mSettings';
 
     const defaultSettings = {
         delayTime: 0,
@@ -33,7 +34,7 @@
     let countdownInterval;
 
     try {
-        const saved = localStorage.getItem('bypassLink4mSettings');
+        const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) settings = { ...settings, ...JSON.parse(saved) };
     } catch (e) {}
 
@@ -82,7 +83,7 @@
     GM_addStyle(CSS);
 
     function saveSettings() {
-        localStorage.setItem('bypassLink4mSettings', JSON.stringify(settings));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     }
 
     function createPanel() {
@@ -97,7 +98,7 @@
                     <img id="panel-icon" src="${LOGO_URL}" alt="Logo">
                     <span id="panel-title">Link4m Tool Bypass (SigmaBou_VN)</span>
                 </div>
-                <button id="toggle-btn">+</button>
+                <button id="toggle-btn">${settings.minimized ? '+' : '−'}</button>
             </div>
             <div id="panel-content">
                 <div class="delay-section">
@@ -310,7 +311,7 @@
                         btn.textContent = 'THÀNH CÔNG';
                         btn.style.background = '#4caf50';
                     } catch (e) {
-                        status.textContent = '❌ Lỗi Thực Hành Khi Bypass';
+                        status.textContent = '❌ Lỗi Khi Bypass Vui Lòng Thử Lại';
                         btn.textContent = 'LỖI';
                         btn.style.background = '#ff9800';
                     }
@@ -338,7 +339,10 @@
             btn.style.background = '';
             btn.classList.remove('countdown');
             bypassExecuted = false;
-            if (countdownInterval) clearInterval(countdownInterval);
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
         }, 3000);
     }
 
@@ -347,7 +351,7 @@
 
 1. Auto Bypass: Tự Động Bypass Khi Vào Trang
 
-2. Điều Chỉnh Slider: Thời Gian Đợi Bypass (0-100 Giây)
+2. Điều Chỉnh Thanh Thời Gian: Đợi Bypass (0-100 Giây)
 
 3. Phím Tắt:
    - Ctrl+B: Kích Hoạt Bypass
@@ -366,8 +370,11 @@ Phiên Bản 1.0 - By SigmaBou_VN`);
         panel = createPanel();
         const header = document.getElementById('panel-header');
 
-        panel.classList.add('minimized');
-        document.getElementById('toggle-btn').textContent = '+';
+        if (settings.minimized) {
+            panel.classList.add('minimized');
+        } else {
+            panel.classList.remove('minimized');
+        }
 
         makeDraggable(panel, header);
         setupMinimize();
@@ -392,6 +399,10 @@ Phiên Bản 1.0 - By SigmaBou_VN`);
         checkAutoBypass();
     }
 
-    init();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
 })();
